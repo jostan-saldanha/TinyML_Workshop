@@ -1,14 +1,21 @@
-09:25:02 **** Incremental Build of configuration Debug for project UART ****
+11:30:36 **** Incremental Build of configuration Debug for project I2C_Interfacing ****
 make -j16 all 
-arm-none-eabi-size  UART.elf 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32L4S5xx -c -I../Core/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+arm-none-eabi-gcc -o "I2C_Interfacing.elf" @"objects.list"   -mcpu=cortex-m4 -T"D:\TinyML_Workshop\TinyML_Workshop\STM32\I2C_Interfacing\STM32L4S5VITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="I2C_Interfacing.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: I2C_Interfacing.elf
+ 
+arm-none-eabi-size  I2C_Interfacing.elf 
+arm-none-eabi-objdump -h -S I2C_Interfacing.elf  > "I2C_Interfacing.list"
    text	   data	    bss	    dec	    hex	filename
-  16832	    104	   2056	  18992	   4a30	UART.elf
+  40484	    468	   2148	  43100	   a85c	I2C_Interfacing.elf
 Finished building: default.size.stdout
  
-09:25:06 **** Incremental Build of configuration Debug for project UART ****
+Finished building: I2C_Interfacing.list
+ 
+11:30:39 **** Incremental Build of configuration Debug for project I2C_Interfacing ****
 make -j16 all 
-arm-none-eabi-size  UART.elf 
+arm-none-eabi-size  I2C_Interfacing.elf 
    text	   data	    bss	    dec	    hex	filename
-  16832	    104	   2056	  18992	   4a30	UART.elf
+  40484	    468	   2148	  43100	   a85c	I2C_Interfacing.elf
 Finished building: default.size.stdout
  
