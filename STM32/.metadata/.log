@@ -1779,3 +1779,24 @@ java.io.IOException: Error opening \\.\COM5 (5)
 	at org.eclipse.remote.serial.core.SerialPortConnection.getCommandShell(SerialPortConnection.java:97)
 	at org.eclipse.remote.internal.console.TerminalConsoleConnector$1.run(TerminalConsoleConnector.java:140)
 	at org.eclipse.core.internal.jobs.Worker.run(Worker.java:63)
+!SESSION 2026-07-30 09:34:15.105 -----------------------------------------------
+eclipse.buildId=Version 1.19.0
+java.version=21.0.3
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_IN
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2026-07-30 09:34:19.194
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2026-07-30 09:34:19.194
+!MESSAGE Log4j2 initialized with config file D:\TinyML_Workshop\TinyML_Workshop\STM32\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2026-07-30 09:34:36.078
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-30 09:37:24.907
+!MESSAGE Indexed 'Onboard_IMU' (30 sources, 95 headers) in 2.94 sec: 9,309 declarations; 71,786 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.0025%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-30 09:42:37.770
+!MESSAGE Indexed 'Onboard_IMU' (27 sources, 97 headers) in 1.4 sec: 13,961 declarations; 60,937 references; 0 unresolved inclusions; 3 syntax errors; 4 unresolved names (0.0053%)
