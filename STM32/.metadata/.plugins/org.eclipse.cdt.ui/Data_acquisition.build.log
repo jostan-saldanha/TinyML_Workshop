@@ -1,0 +1,24 @@
+14:25:37 **** Incremental Build of configuration Debug for project Data_acquisition ****
+make -j16 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32L4S5xx -c -I../Core/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -fcyclomatic-complexity -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c:300:1: warning: "/*" within comment [-Wcomment]
+  300 | /*USER CODE END 4 */
+      |  
+../Core/Src/main.c: In function '_write':
+../Core/Src/main.c:298:1: warning: control reaches end of non-void function [-Wreturn-type]
+  298 | }
+      | ^
+arm-none-eabi-gcc -o "Data_acquisition.elf" @"objects.list"   -mcpu=cortex-m4 -T"D:\TinyML_Workshop\TinyML_Workshop\STM32\Data_acquisition\STM32L4S5VITX_FLASH.ld" --specs=nosys.specs -Wl,-Map="Data_acquisition.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -u _printf_float -u _scanf_float -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: Data_acquisition.elf
+ 
+arm-none-eabi-size  Data_acquisition.elf 
+arm-none-eabi-objdump -h -S Data_acquisition.elf  > "Data_acquisition.list"
+   text	   data	    bss	    dec	    hex	filename
+  40732	    468	   2180	  43380	   a974	Data_acquisition.elf
+Finished building: default.size.stdout
+ 
+Finished building: Data_acquisition.list
+ 
+
+14:25:37 Build Finished. 0 errors, 2 warnings. (took 595ms)
+

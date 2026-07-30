@@ -3,8 +3,6 @@ import matplotlib.pyplot as plt
 
 # Load dataset
 df = pd.read_csv("../Datasets/dataset.csv")
-print(df.columns.tolist())
-print(df.head())
 
 # Plot accelerometer signals
 plt.figure(figsize=(12,5))
