@@ -1,0 +1,10 @@
+14:46:02 **** Incremental Build of configuration Debug for project Inference_onboard ****
+make -j16 all 
+arm-none-eabi-size  Inference_onboard.elf 
+   text	   data	    bss	    dec	    hex	filename
+1655288	   1984	   4992	1662264	 195d38	Inference_onboard.elf
+Finished building: default.size.stdout
+ 
+
+14:46:02 Build Finished. 0 errors, 0 warnings. (took 195ms)
+

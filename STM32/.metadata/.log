@@ -1800,3 +1800,6 @@ Command-line arguments:  -os win32 -ws win32 -arch x86_64
 
 !ENTRY org.eclipse.cdt.core 1 0 2026-07-30 09:42:37.770
 !MESSAGE Indexed 'Onboard_IMU' (27 sources, 97 headers) in 1.4 sec: 13,961 declarations; 60,937 references; 0 unresolved inclusions; 3 syntax errors; 4 unresolved names (0.0053%)
+
+!ENTRY org.eclipse.cdt.core 1 0 2026-07-30 12:12:47.538
+!MESSAGE Indexed 'Inference_onboard' (30 sources, 95 headers) in 3.22 sec: 9,309 declarations; 71,786 references; 0 unresolved inclusions; 1 syntax errors; 2 unresolved names (0.0025%)
