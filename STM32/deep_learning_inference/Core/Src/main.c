@@ -21,10 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "stdio.h"
+#include "imu.h"
 #include "string.h"
-#include "stdlib.h"
-
+#include "stdio.h"
 #include "network.h"
 #include "network_data.h"
 #include "network_data_params.h"
@@ -46,16 +45,11 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-I2C_HandleTypeDef hi2c1;
+I2C_HandleTypeDef hi2c2;
 
 UART_HandleTypeDef huart1;
 
 /* USER CODE BEGIN PV */
-
-/*--------------------------------------------------------------------
- * X-CUBE-AI Variables
- *-------------------------------------------------------------------*/
-
 ai_handle network = AI_HANDLE_NULL;
 
 AI_ALIGNED(4)
@@ -64,56 +58,44 @@ static ai_u8 activations_buffer[AI_NETWORK_DATA_ACTIVATIONS_SIZE];
 static ai_buffer *ai_input;
 static ai_buffer *ai_output;
 
-
-/*--------------------------------------------------------------------
- * Neural Network Buffers
- *-------------------------------------------------------------------*/
-
+/* Input Features */
 float input_data[6];
 
+const float feature_min[6] =
+{
+    -2.000f,
+    -2.000f,
+    -2.000f,
+    -250.137f,
+    -250.137f,
+    -250.137f
+};
+
+const float feature_max[6] =
+{
+     2.000f,
+     1.749f,
+     2.000f,
+     250.130f,
+     250.130f,
+     250.130f
+};
+
+/* Network Output (5 Classes) */
 float output_data[5];
 
+/* Predicted Label */
 int32_t predicted_label;
-
-
-/*--------------------------------------------------------------------
- * UART Receive Buffer
- *-------------------------------------------------------------------*/
-
-#define RX_BUFFER_SIZE      128
-
-char rx_buffer[RX_BUFFER_SIZE];
-
-
-/*--------------------------------------------------------------------
- * UART Receive Character
- *-------------------------------------------------------------------*/
-
-uint8_t rx_char;
-
-
-/*--------------------------------------------------------------------
- * Receive Status
- *-------------------------------------------------------------------*/
-
-uint16_t rx_index = 0;
-
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_I2C1_Init(void);
+static void MX_I2C2_Init(void);
 static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
-
-void MX_X_CUBE_AI_Init(void);
-
+void Normalize_Features(void);
 void AI_Run(void);
-
-uint8_t Receive_Test_Sample(void);
-
-/* USER CODE END PFP */
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -163,6 +145,7 @@ int main(void)
 
   /* MCU Configuration--------------------------------------------------------*/
 
+  /* Reset of all peripherals, Initializes the Flash interface and the Systick. */
   HAL_Init();
 
   /* USER CODE BEGIN Init */
@@ -178,37 +161,102 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_I2C2_Init();
   MX_USART1_UART_Init();
-
   /* USER CODE BEGIN 2 */
-
-  printf("\r\n");
-  printf("========================================\r\n");
-  printf("STM32 FP32 Validation Firmware\r\n");
-  printf("========================================\r\n");
-
-  MX_X_CUBE_AI_Init();
-
-  printf("Waiting for normalized feature vectors...\r\n");
-  printf("Input Format:\r\n");
-  printf("f1,f2,f3,f4,f5,f6\r\n\r\n");
-
+  IMU_Init();
+  float ax, ay, az;
+  float gx, gy, gz;
   /* USER CODE END 2 */
+  printf("\r\n");
+    printf("MLP STM32 Demo\r\n");
 
+    MX_X_CUBE_AI_Init();
+
+
+    /* Enable DWT Cycle Counter */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
   /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
   while (1)
   {
-      /* Wait until one complete sample is received */
-      if (Receive_Test_Sample())
-      {
-          /* Run Neural Network */
-          AI_Run();
+    /* USER CODE END WHILE */
 
-          /* Return only the predicted class */
-          printf("%ld\r\n", predicted_label);
-      }
+    /* USER CODE BEGIN 3 */
+
+	  IMU_Read_Accel(&ax, &ay, &az);
+	  IMU_Read_Gyro(&gx, &gy, &gz);
+
+	  /* Build feature vector */
+	 	  input_data[0] = ax;
+	 	  input_data[1] = ay;
+	 	  input_data[2] = az;
+	 	  input_data[3] = gx;
+	 	  input_data[4] = gy;
+	 	  input_data[5] = gz;
+
+	 	 /* Normalize */
+	 	 	  Normalize_Features();
+
+	 	 	  printf("\r\nRaw Sensor Values\r\n");
+
+	 	 	  printf("Ax = %.3f\tAy = %.3f\tAz = %.3f\r\n", ax, ay, az);
+
+	 	 	  printf("Gx = %.3f\tGy = %.3f\tGz = %.3f\r\n", gx, gy, gz);
+
+	 	 	  printf("\r\nNormalized Features\r\n");
+
+	 	 	  for(int i = 0; i < 6; i++)
+	 	 	  {
+	 	 	      printf("%.3f ", input_data[i]);
+	 	 	  }
+
+	 	 	  printf("\r\n");
+
+	 	 	  /* Run inference */
+	 	 	  /* Measure inference latency */
+	 	 	  uint64_t total_cycles = 0;
+
+	 	 	  for(int i = 0; i < 1000; i++)
+	 	 	  {
+	 	 	      uint32_t start = DWT->CYCCNT;
+
+	 	 	      AI_Run();
+
+	 	 	      uint32_t end = DWT->CYCCNT;
+
+	 	 	      DWT->CYCCNT = 0;
+
+	 	 	      total_cycles += (end - start);
+	 	 	  }
+
+	 	 	  printf("\nOutput Scores\n");
+
+	 	 	  for(int i = 0; i < 5; i++)
+	 	 	  {
+	 	 	      printf("Class %d : %.6f\r\n", i, output_data[i]);
+	 	 	  }
+
+	 	 	  printf("Predicted Class : %ld\r\n", predicted_label);
+
+	 	 	  uint32_t avg_cycles = total_cycles / 1000;
+
+	 	 	  printf("\nAverage CPU Cycles : %lu\r\n", avg_cycles);
+
+	 	 	  float latency_ms =
+	 	 	  ((float)avg_cycles / 120000000.0f) * 1000.0f;
+
+	 	 	  printf("Average Latency : %.3f ms\r\n", latency_ms);
+
+	 	 	  float throughput =
+	 	 	  1000.0f / latency_ms;
+
+	 	 	  printf("Throughput : %.2f inf/sec\r\n", throughput);
+
+	 	 	  HAL_Delay(1000);
   }
-
+  /* USER CODE END 3 */
 }
 
 /**
@@ -262,50 +310,50 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief I2C1 Initialization Function
+  * @brief I2C2 Initialization Function
   * @param None
   * @retval None
   */
-static void MX_I2C1_Init(void)
+static void MX_I2C2_Init(void)
 {
 
-  /* USER CODE BEGIN I2C1_Init 0 */
+  /* USER CODE BEGIN I2C2_Init 0 */
 
-  /* USER CODE END I2C1_Init 0 */
+  /* USER CODE END I2C2_Init 0 */
 
-  /* USER CODE BEGIN I2C1_Init 1 */
+  /* USER CODE BEGIN I2C2_Init 1 */
 
-  /* USER CODE END I2C1_Init 1 */
-  hi2c1.Instance = I2C1;
-  hi2c1.Init.Timing = 0x30A175AB;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
-  hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
-  if (HAL_I2C_Init(&hi2c1) != HAL_OK)
+  /* USER CODE END I2C2_Init 1 */
+  hi2c2.Instance = I2C2;
+  hi2c2.Init.Timing = 0x30A175AB;
+  hi2c2.Init.OwnAddress1 = 0;
+  hi2c2.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+  hi2c2.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
+  hi2c2.Init.OwnAddress2 = 0;
+  hi2c2.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
+  hi2c2.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
+  hi2c2.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  if (HAL_I2C_Init(&hi2c2) != HAL_OK)
   {
     Error_Handler();
   }
 
   /** Configure Analogue filter
   */
-  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
+  if (HAL_I2CEx_ConfigAnalogFilter(&hi2c2, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     Error_Handler();
   }
 
   /** Configure Digital filter
   */
-  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
+  if (HAL_I2CEx_ConfigDigitalFilter(&hi2c2, 0) != HAL_OK)
   {
     Error_Handler();
   }
-  /* USER CODE BEGIN I2C1_Init 2 */
+  /* USER CODE BEGIN I2C2_Init 2 */
 
-  /* USER CODE END I2C1_Init 2 */
+  /* USER CODE END I2C2_Init 2 */
 
 }
 
@@ -383,6 +431,22 @@ int _write(int file, char *ptr, int len)
     return len;
 }
 
+void Normalize_Features(void)
+{
+    for(int i = 0; i < 6; i++)
+    {
+        input_data[i] =
+            (input_data[i] - feature_min[i]) /
+            (feature_max[i] - feature_min[i]);
+
+        /* Optional safety clipping */
+        if(input_data[i] < 0.0f)
+            input_data[i] = 0.0f;
+
+        if(input_data[i] > 1.0f)
+            input_data[i] = 1.0f;
+    }
+}
 
 void AI_Run(void)
 {
@@ -395,72 +459,16 @@ void AI_Run(void)
                            ai_input,
                            ai_output);
 
-    if (batch != 1)
-    {
-        printf("AI_RUN_ERROR\r\n");
+    if(batch != 1)
         return;
-    }
 
     predicted_label = 0;
 
-    for (int i = 1; i < 5; i++)
+    for(int i = 1; i < 5; i++)
     {
-        if (output_data[i] > output_data[predicted_label])
-        {
+        if(output_data[i] > output_data[predicted_label])
             predicted_label = i;
-        }
     }
-}
-
-uint8_t Receive_Test_Sample(void)
-{
-    rx_index = 0;
-
-    memset(rx_buffer, 0, RX_BUFFER_SIZE);
-
-    while (1)
-    {
-        /* Receive one character */
-        HAL_UART_Receive(&huart1,
-                         &rx_char,
-                         1,
-                         HAL_MAX_DELAY);
-
-        /* End of line reached */
-        if ((rx_char == '\n') || (rx_char == '\r'))
-        {
-            if (rx_index > 0)
-            {
-                rx_buffer[rx_index] = '\0';
-                break;
-            }
-        }
-        else
-        {
-            if (rx_index < (RX_BUFFER_SIZE - 1))
-            {
-                rx_buffer[rx_index++] = rx_char;
-            }
-        }
-    }
-
-    /* Parse six floating-point values */
-    int count = sscanf(rx_buffer,
-                       "%f,%f,%f,%f,%f,%f",
-                       &input_data[0],
-                       &input_data[1],
-                       &input_data[2],
-                       &input_data[3],
-                       &input_data[4],
-                       &input_data[5]);
-
-    if (count != 6)
-    {
-        printf("ERROR\r\n");
-        return 0;
-    }
-
-    return 1;
 }
 /* USER CODE END 4 */
 
