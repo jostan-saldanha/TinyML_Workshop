@@ -1,0 +1,10 @@
+11:16:35 **** Incremental Build of configuration Debug for project deep_learning_inference ****
+make -j16 all 
+arm-none-eabi-size  deep_learning_inference.elf 
+   text	   data	    bss	    dec	    hex	filename
+  58580	   2140	   5332	  66052	  10204	deep_learning_inference.elf
+Finished building: default.size.stdout
+ 
+
+11:16:36 Build Finished. 0 errors, 0 warnings. (took 173ms)
+
